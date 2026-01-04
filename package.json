@@ -1,4 +1,9 @@
-"homepage": "https://jitsa007.github.io/mindverse-portal",
+{
+  "homepage": "https://JITSA007.github.io/mindverse-portal",
+  "name": "mindverse-portal",
+  "private": true,
+  ...
+
 {
   "name": "mindverse",
   "private": true,
