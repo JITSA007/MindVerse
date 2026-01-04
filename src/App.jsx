@@ -27,7 +27,7 @@ import {
   Menu, X, Briefcase, BookOpen, Users, 
   Gamepad2, LogOut, ChevronRight, MessageCircle, 
   Shield, ExternalLink, Mail, Key, Star, Zap,
-  CheckCircle, ArrowRight, Lock
+  CheckCircle, ArrowRight, Lock, User
 } from 'lucide-react';
 
 // --- CONFIGURATION ---
@@ -353,7 +353,7 @@ const Home = ({ navigate }) => (
       <ParticleBackground />
       <div className="relative z-10 max-w-5xl mx-auto animate-fade-in-up">
         <div className="inline-flex items-center gap-2 py-1.5 px-4 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-bold mb-8 tracking-widest uppercase border border-blue-200 dark:border-blue-700/50 backdrop-blur-sm">
-          <Star size={12} fill="currentColor" /> Official CollegeDekho Students Magzine
+          <Star size={12} fill="currentColor" /> Official CollegeDekho Students
         </div>
         <h1 className="text-6xl md:text-8xl font-black text-slate-900 dark:text-white mb-6 leading-none tracking-tight">
           Mind<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-orange-500">Verse</span>
@@ -757,7 +757,7 @@ export default function App() {
             <div className="bg-gradient-to-br from-blue-600 to-indigo-600 text-white w-10 h-10 rounded-xl flex items-center justify-center font-black text-xl shadow-lg shadow-blue-500/20">M</div>
             <div>
               <span className="font-bold text-xl block leading-none tracking-tight">MindVerse</span>
-              <span className="text-[10px] text-blue-600 dark:text-blue-400 uppercase tracking-widest font-bold">By CollegeDekho Students</span>
+              <span className="text-[10px] text-blue-600 dark:text-blue-400 uppercase tracking-widest font-bold">CollegeDekho Students</span>
             </div>
           </div>
 
@@ -771,7 +771,7 @@ export default function App() {
           </nav>
 
           <div className="flex items-center gap-4">
-            {user ? (
+            {user && !user.isAnonymous ? (
               <div className="flex items-center gap-3 pl-4 border-l border-slate-200 dark:border-slate-700">
                  {ADMIN_EMAILS.includes(user.email) && (
                    <button onClick={() => setView('admin')} className="text-[10px] font-black bg-orange-500 text-white px-2 py-1 rounded hover:bg-orange-600 transition-colors shadow-lg shadow-orange-500/30">ADMIN</button>
