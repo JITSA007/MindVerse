@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { initializeApp } from 'firebase/app';
+import { getAnalytics } from "firebase/analytics";
 import { 
   getAuth, 
   onAuthStateChanged, 
@@ -33,11 +34,22 @@ import {
 const ADMIN_EMAILS = ['admin@college.edu', 'jitendra.prajapat@college.edu']; 
 
 // --- FIREBASE INIT ---
-const firebaseConfig = JSON.parse(__firebase_config);
+const firebaseConfig = {
+  apiKey: "AIzaSyCgtaM_VdcBlPCsP4jWcfvlIHfzEnGsg5c",
+  authDomain: "mindverse-edc1e.firebaseapp.com",
+  projectId: "mindverse-edc1e",
+  storageBucket: "mindverse-edc1e.firebasestorage.app",
+  messagingSenderId: "522526203924",
+  appId: "1:522526203924:web:434481f95f7c6c65f2c701",
+  measurementId: "G-8BGCNPZ9MD"
+};
+
 const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+// Use a default app ID for the database path if the environment variable is missing
+const appId = typeof __app_id !== 'undefined' ? __app_id : 'mindverse-app';
 
 // --- VISUAL COMPONENTS ---
 
@@ -611,9 +623,13 @@ export default function App() {
     const initAuth = async () => {
       // Prioritize custom token if available (e.g., from environment)
       if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-        await signInWithCustomToken(auth, __initial_auth_token);
+        try {
+          await signInWithCustomToken(auth, __initial_auth_token);
+        } catch (err) {
+           console.warn("Custom token invalid, falling back to anonymous auth.");
+           await signInAnonymously(auth);
+        }
       } else {
-        // Fallback to anonymous sign-in to ensure a user is always present for Firestore rules
         await signInAnonymously(auth);
       }
     };
