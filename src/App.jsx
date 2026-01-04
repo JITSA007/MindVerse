@@ -59,7 +59,7 @@ import {
   updateProfile
 } from 'firebase/auth';
 
-// --- Firebase Configuration ---
+// --- Firebase Configuration (UPDATED WITH YOUR KEYS) ---
 const firebaseConfig = {
   apiKey: "AIzaSyCgtaM_VdcBlPCsP4jWcfvlIHfzEnGsg5c",
   authDomain: "mindverse-edc1e.firebaseapp.com",
@@ -69,10 +69,13 @@ const firebaseConfig = {
   appId: "1:522526203924:web:434481f95f7c6c65f2c701",
   measurementId: "G-8BGCNPZ9MD"
 };
+
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'mindverse-v1';
+
+// Fixed Collection ID for Firestore to prevent crashes
+const appCollectionId = "mindverse-v1"; 
 
 // --- Constants & Mock Data ---
 const ADMIN_EMAIL = "admin@mindverse.com"; // Simulating an admin user check
@@ -301,7 +304,7 @@ const ContentEditor = ({ theme, user, mode = 'guest' }) => {
         }
       };
 
-      await addDoc(collection(db, 'artifacts', appId, 'public', 'data', collectionName), payload);
+      await addDoc(collection(db, 'artifacts', appCollectionId, 'public', 'data', collectionName), payload);
       alert(mode === 'admin' ? "Article Published Successfully!" : "Blog Submitted for Review!");
       setTitle(''); setContent(''); setImage('');
     } catch (err) {
@@ -409,19 +412,19 @@ const AdminPanel = ({ theme, user }) => {
     if (!user) return;
     
     // Fetch Pending Posts
-    const qPending = query(collection(db, 'artifacts', appId, 'public', 'data', 'guest_posts'), where('status', '==', 'pending'));
+    const qPending = query(collection(db, 'artifacts', appCollectionId, 'public', 'data', 'guest_posts'), where('status', '==', 'pending'));
     const unsubPending = onSnapshot(qPending, snap => {
       setPendingPosts(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     }, err => console.error("Guest posts error:", err));
 
     // Fetch Ticker
-    // FIXED: Use a document path with even segments (settings/config)
-    const unsubTicker = onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'config'), doc => {
+    // Use a document path with even segments (settings/config)
+    const unsubTicker = onSnapshot(doc(db, 'artifacts', appCollectionId, 'public', 'data', 'settings', 'config'), doc => {
       if (doc.exists()) setTickerItems(doc.data().ticker || []);
     }, err => console.error("Ticker error:", err));
 
     // Fetch Issues
-    const qIssues = query(collection(db, 'artifacts', appId, 'public', 'data', 'issues'), orderBy('number', 'desc'));
+    const qIssues = query(collection(db, 'artifacts', appCollectionId, 'public', 'data', 'issues'), orderBy('number', 'desc'));
     const unsubIssues = onSnapshot(qIssues, snap => {
       setIssues(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     }, err => console.error("Issues error:", err));
@@ -433,27 +436,27 @@ const AdminPanel = ({ theme, user }) => {
   const approvePost = async (post) => {
     try {
       // Add to main articles
-      await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'articles'), {
+      await addDoc(collection(db, 'artifacts', appCollectionId, 'public', 'data', 'articles'), {
         ...post,
         status: 'published',
         approvedBy: user.email,
         publishedAt: serverTimestamp()
       });
       // Delete from guest_posts
-      await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'guest_posts', post.id));
+      await deleteDoc(doc(db, 'artifacts', appCollectionId, 'public', 'data', 'guest_posts', post.id));
       alert("Post Approved & Published!");
     } catch(err) { console.error(err); }
   };
 
   const rejectPost = async (id) => {
-    if(confirm("Reject this post?")) await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'guest_posts', id));
+    if(confirm("Reject this post?")) await deleteDoc(doc(db, 'artifacts', appCollectionId, 'public', 'data', 'guest_posts', id));
   };
 
   const addTickerItem = async () => {
     if(!newTicker) return;
     const newItems = [newTicker, ...tickerItems];
-    // FIXED: Use correct path settings/config
-    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'config'), { ticker: newItems }, { merge: true });
+    // Use correct path settings/config
+    await setDoc(doc(db, 'artifacts', appCollectionId, 'public', 'data', 'settings', 'config'), { ticker: newItems }, { merge: true });
     setNewTicker("");
   };
 
@@ -471,7 +474,7 @@ const AdminPanel = ({ theme, user }) => {
   };
 
   const addIssue = async () => {
-    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'issues'), {
+    await addDoc(collection(db, 'artifacts', appCollectionId, 'public', 'data', 'issues'), {
         ...newIssue,
         number: parseInt(newIssue.number),
         createdAt: serverTimestamp()
@@ -673,7 +676,7 @@ const Archive = ({ theme, user }) => {
   
   useEffect(() => {
     if (!user) return;
-    const q = query(collection(db, 'artifacts', appId, 'public', 'data', 'issues'), orderBy('number', 'desc'));
+    const q = query(collection(db, 'artifacts', appCollectionId, 'public', 'data', 'issues'), orderBy('number', 'desc'));
     const unsubscribe = onSnapshot(q, snap => setIssues(snap.docs.map(d => ({id: d.id, ...d.data()}))), err => console.error("Archive error", err));
     return () => unsubscribe();
   }, [user]);
@@ -717,7 +720,7 @@ const ArticleFeed = ({ theme, user }) => {
 
   useEffect(() => {
     if (!user) return;
-    const q = query(collection(db, 'artifacts', appId, 'public', 'data', 'articles'), orderBy('createdAt', 'desc'));
+    const q = query(collection(db, 'artifacts', appCollectionId, 'public', 'data', 'articles'), orderBy('createdAt', 'desc'));
     const unsubscribe = onSnapshot(q, snap => setArticles(snap.docs.map(d => ({ id: d.id, ...d.data() }))), err => console.error("ArticleFeed error", err));
     return () => unsubscribe();
   }, [user]);
@@ -770,8 +773,8 @@ const NewsTicker = ({ theme, user }) => {
   
   useEffect(() => {
     if (!user) return;
-    // FIXED: Use correct path settings/config
-    const unsubscribe = onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'config'), d => {
+    // Use correct path settings/config
+    const unsubscribe = onSnapshot(doc(db, 'artifacts', appCollectionId, 'public', 'data', 'settings', 'config'), d => {
        if (d.exists()) setNews(d.data().ticker || []);
     }, err => console.error("Ticker error", err));
     return () => unsubscribe();
@@ -806,20 +809,30 @@ export default function App() {
   const [view, setView] = useState('home');
   const [theme, setTheme] = useState('light');
   const [user, setUser] = useState(null);
+  const [authError, setAuthError] = useState(null); // Add error state
 
   useEffect(() => {
     // Check local theme preference
     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) setTheme('dark');
 
     const initAuth = async () => {
-       if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-          await signInWithCustomToken(auth, __initial_auth_token);
-       } else {
-          await signInAnonymously(auth); // Fallback for permission errors
-       }
+      try {
+         // Always fallback to anonymous sign-in to ensure DB access works for guests
+         await signInAnonymously(auth);
+      } catch (err) {
+         console.error("Authentication Error:", err);
+         if (err.code === 'auth/configuration-not-found' || err.code === 'auth/admin-restricted-operation') {
+             setAuthError("Firebase Authentication is not enabled. Please go to Firebase Console -> Authentication -> Sign-in method and enable 'Anonymous' and 'Email/Password'.");
+         } else {
+             setAuthError(`Authentication failed: ${err.message}`);
+         }
+      }
     };
     initAuth();
-    return onAuthStateChanged(auth, setUser);
+    return onAuthStateChanged(auth, (u) => {
+        setUser(u);
+        if(u) setAuthError(null); // Clear error on success
+    });
   }, []);
 
   const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
@@ -838,6 +851,12 @@ export default function App() {
 
   return (
     <div className={`min-h-screen font-sans transition-colors duration-300 ${theme === 'dark' ? 'bg-slate-900' : 'bg-white'}`}>
+      {/* Error Banner */}
+      {authError && (
+        <div className="bg-red-600 text-white px-4 py-2 text-center text-sm font-bold animate-pulse">
+           CRITICAL: {authError}
+        </div>
+      )}
       <NewsTicker theme={theme} user={user} />
       <Navbar view={view} setView={setView} toggleTheme={toggleTheme} theme={theme} user={user} onLogout={() => signOut(auth)} />
       <main>{renderContent()}</main>
