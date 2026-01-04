@@ -180,8 +180,14 @@ const StudentLoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
   };
 
   const handleGoogleLogin = async () => {
-    try { await signInWithPopup(auth, new GoogleAuthProvider()); onLoginSuccess(); onClose(); } 
-    catch (err) { setError("Google Login failed."); }
+    try { 
+      await signInWithPopup(auth, new GoogleAuthProvider()); 
+      onLoginSuccess(); onClose(); 
+    } 
+    catch (err) { 
+      console.error("Google Login Error:", err);
+      setError("Google Login not available. Please use email/password."); 
+    }
   };
 
   return (
@@ -285,6 +291,61 @@ const AdminLoginScreen = ({ onLoginSuccess, onBack }) => {
 };
 
 // --- PAGES ---
+
+// --- PLAYGROUND PAGE ---
+const Playground = () => {
+  const [activeTab, setActiveTab] = useState('trivia');
+  
+  return (
+    <div className="max-w-4xl mx-auto px-4 py-16">
+      <div className="text-center mb-10">
+        <h2 className="text-4xl font-black text-slate-900 dark:text-white mb-2 flex items-center justify-center gap-2">
+          <Gamepad2 className="text-orange-500"/> The Playground
+        </h2>
+        <p className="text-slate-600 dark:text-slate-400">Take a break, vote, or test your knowledge.</p>
+      </div>
+      
+      <div className="flex justify-center mb-10">
+        <div className="bg-slate-100 dark:bg-slate-800 p-1 rounded-xl inline-flex shadow-inner">
+          <button onClick={() => setActiveTab('trivia')} className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${activeTab === 'trivia' ? 'bg-white dark:bg-slate-700 shadow-sm text-blue-600 dark:text-blue-400' : 'text-slate-500'}`}>Daily Trivia</button>
+          <button onClick={() => setActiveTab('polls')} className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${activeTab === 'polls' ? 'bg-white dark:bg-slate-700 shadow-sm text-blue-600 dark:text-blue-400' : 'text-slate-500'}`}>Campus Polls</button>
+        </div>
+      </div>
+
+      <Card className="min-h-[350px] flex items-center justify-center text-center">
+        {activeTab === 'trivia' ? (
+          <div className="animate-fade-in w-full max-w-lg">
+            <span className="text-5xl mb-6 block">🧠</span>
+            <h3 className="text-2xl font-bold mb-4 text-slate-800 dark:text-white">Question of the Day</h3>
+            <p className="text-xl mb-8 text-slate-600 dark:text-slate-300">"What year was the first computer virus created?"</p>
+            <div className="grid grid-cols-2 gap-4">
+              {['1971', '1983', '1995', '2000'].map(opt => (
+                <Button key={opt} variant="outline" className="py-3 text-lg hover:border-blue-500 hover:text-blue-500" onClick={() => alert(opt === '1971' ? "Correct! (The Creeper Virus)" : "Try again!")}>{opt}</Button>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="w-full max-w-md animate-fade-in">
+            <span className="text-5xl mb-6 block">📊</span>
+            <h3 className="text-2xl font-bold mb-6 text-slate-800 dark:text-white">Best Coding Snack?</h3>
+            {['Pizza', 'Coffee', 'Chips', 'Energy Drink'].map((opt, i) => (
+              <div key={opt} className="mb-4">
+                <div className="flex justify-between text-sm mb-1.5 font-bold text-slate-600 dark:text-slate-400">
+                  <span>{opt}</span>
+                  <span>{25 + i * 5}%</span>
+                </div>
+                <div className="h-3 w-full bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                  <div className="h-full bg-blue-500" style={{ width: `${25 + i * 5}%` }}></div>
+                </div>
+              </div>
+            ))}
+            <Button className="mt-6 w-full shadow-blue-500/20" variant="secondary">Submit Your Vote</Button>
+          </div>
+        )}
+      </Card>
+    </div>
+  );
+};
 
 const Home = ({ navigate }) => (
   <div className="relative min-h-[90vh]">
@@ -751,7 +812,7 @@ export default function App() {
         {view === 'archive' && <MagazineArchive magazines={magazines} />}
         {view === 'jobs' && <JobBoard jobs={jobs} />}
         {view === 'team' && <TeamPage />}
-        {view === 'playground' && <div className="text-center py-20"><Gamepad2 size={48} className="mx-auto mb-4 text-orange-500"/><h2 className="text-2xl font-bold">Playground Loading...</h2><p>Coming in next update!</p></div>}
+        {view === 'playground' && <Playground />}
         {view === 'confessions' && <div className="text-center py-20"><MessageCircle size={48} className="mx-auto mb-4 text-orange-500"/><h2 className="text-2xl font-bold">Confessions Coming Soon</h2></div>}
       </main>
 
